@@ -41,7 +41,10 @@ export function HomePage() {
       <Seo
         title="Schipor Adrian | Photographer & Visual Storyteller"
         description={site.hero.description}
-      />
+      >
+        <link rel="preload" as="image" href={site.hero.heroMedia.poster} />
+        <link rel="preload" as="video" href={site.hero.heroMedia.src} type="video/mp4" />
+      </Seo>
 
       <HeroCinematic hero={site.hero} categories={featuredCategories} />
 
