@@ -1,0 +1,220 @@
+import { useLayoutEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import type { Category, HeroContent } from '@/shared/lib/content-schema';
+import { usePrefersReducedMotion } from '@/shared/hooks/usePrefersReducedMotion';
+
+gsap.registerPlugin(ScrollTrigger);
+
+type HeroCinematicProps = {
+  hero: HeroContent;
+  categories: Category[];
+};
+
+export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
+  const rootRef = useRef<HTMLElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  useLayoutEffect(() => {
+    const node = rootRef.current;
+    const video = videoRef.current;
+    if (!node) {
+      return;
+    }
+
+    if (prefersReducedMotion) {
+      if (video) {
+        video.pause();
+      }
+      return;
+    }
+
+    let metadataHandler: (() => void) | null = null;
+    let scrubTween: gsap.core.Tween | null = null;
+
+    const context = gsap.context(() => {
+      const stage = node.querySelector<HTMLElement>('.hero__stage');
+      const mediaShell = node.querySelector<HTMLElement>('.hero__media-shell');
+
+      if (!stage || !mediaShell) {
+        return;
+      }
+
+      const horizontalGutter = () => Math.min(56, Math.max(20, window.innerWidth * 0.03));
+      const verticalGutter = () => Math.min(40, Math.max(18, window.innerHeight * 0.025));
+
+      const intro = gsap.timeline({
+        defaults: {
+          ease: 'power4.out',
+        },
+      });
+
+      intro
+        .from('.hero__eyebrow', { y: 24, opacity: 0, duration: 0.9 })
+        .from('.hero__headline-line span', { yPercent: 110, skewY: 6, duration: 1.25, stagger: 0.12 }, 0.05)
+        .from('.hero__tagline, .hero__description', { y: 24, opacity: 0, duration: 0.8, stagger: 0.12 }, 0.4)
+        .from('.hero__actions > *', { y: 18, opacity: 0, duration: 0.6, stagger: 0.1 }, 0.55)
+        .from('.hero__stat', { y: 22, opacity: 0, duration: 0.75, stagger: 0.08 }, 0.6)
+        .from('.hero__rail-card', { x: 36, opacity: 0, duration: 0.8, stagger: 0.08 }, 0.5);
+
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: node,
+            start: 'top top',
+            end: 'bottom bottom',
+            scrub: 1.1,
+            invalidateOnRefresh: true,
+          },
+        })
+        .to(
+          mediaShell,
+          {
+            left: () => {
+              const stageRect = stage.getBoundingClientRect();
+              return horizontalGutter() - stageRect.left;
+            },
+            right: () => {
+              const stageRect = stage.getBoundingClientRect();
+              return -(window.innerWidth - stageRect.right) + horizontalGutter();
+            },
+            top: () => verticalGutter(),
+            bottom: () => verticalGutter(),
+            ease: 'none',
+          },
+          0,
+        )
+        .to(
+          node,
+          {
+            '--hero-clip-top': '0%',
+            '--hero-clip-right': '0%',
+            '--hero-clip-bottom': '0%',
+            '--hero-clip-left': '0%',
+            ease: 'none',
+          },
+          0,
+        )
+        .to('.hero__media', { scale: 1.08, ease: 'none' }, 0)
+        .to('.hero__overlay', { opacity: 0.5, ease: 'none' }, 0)
+        .to('.hero__content', { y: -24, opacity: 0.94, ease: 'none' }, 0.05)
+        .to('.hero__rail', { y: -16, opacity: 0.96, ease: 'none' }, 0.04);
+
+      if (video && hero.heroMedia.type === 'video') {
+        const initialFrame = 0.05;
+        const endFrameBuffer = 0.18;
+
+        const setupScrollScrub = () => {
+          if (!video.duration || !Number.isFinite(video.duration)) {
+            return;
+          }
+
+          scrubTween?.kill();
+          video.pause();
+          video.currentTime = initialFrame;
+
+          scrubTween = gsap.to(video, {
+            currentTime: Math.max(initialFrame, video.duration - endFrameBuffer),
+            ease: 'none',
+            scrollTrigger: {
+              trigger: node,
+              start: 'top top',
+              end: 'bottom bottom',
+              scrub: 0.8,
+              invalidateOnRefresh: true,
+            },
+          });
+
+          ScrollTrigger.refresh();
+        };
+
+        if (video.readyState >= 1) {
+          setupScrollScrub();
+        } else {
+          metadataHandler = () => setupScrollScrub();
+          video.addEventListener('loadedmetadata', metadataHandler, { once: true });
+        }
+      }
+    }, node);
+
+    return () => {
+      scrubTween?.kill();
+      if (video && metadataHandler) {
+        video.removeEventListener('loadedmetadata', metadataHandler);
+      }
+      context.revert();
+    };
+  }, [hero.heroMedia.src, hero.heroMedia.type, prefersReducedMotion]);
+
+  return (
+    <section ref={rootRef} className="hero">
+      <div className="hero__stage">
+        <div className="hero__media-shell">
+          <div className="hero__media-inner">
+            {hero.heroMedia.type === 'video' ? (
+              <video
+                ref={videoRef}
+                className="hero__media"
+                src={hero.heroMedia.src}
+                poster={hero.heroMedia.poster}
+                muted
+                playsInline
+                preload="auto"
+              />
+            ) : (
+              <img className="hero__media" src={hero.heroMedia.src} alt={hero.heroMedia.alt} />
+            )}
+            <div className="hero__overlay" />
+          </div>
+        </div>
+
+        <div className="hero__content">
+          <p className="hero__eyebrow eyebrow">{hero.eyebrow}</p>
+          <div className="hero__headline">
+            {hero.headlineLines.map((line) => (
+              <div key={line} className="hero__headline-line">
+                <span>{line}</span>
+              </div>
+            ))}
+          </div>
+          <p className="hero__tagline">{hero.tagline}</p>
+          <p className="hero__description">{hero.description}</p>
+
+          <div className="hero__actions">
+            <Link to={hero.primaryCta.href} className="button button--primary">
+              {hero.primaryCta.label}
+            </Link>
+            <Link to={hero.secondaryCta.href} className="button button--ghost">
+              {hero.secondaryCta.label}
+            </Link>
+          </div>
+
+          <div className="hero__stats">
+            {hero.stats.map((stat) => (
+              <article key={stat.label} className="hero__stat">
+                <p>{stat.label}</p>
+                <strong>{stat.value}</strong>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <aside className="hero__rail" aria-label="Featured categories">
+          {categories.map((category) => (
+            <Link
+              key={category.id}
+              className="hero__rail-card"
+              to={`/portfolio?category=${category.slug}`}
+            >
+              <span>{category.accent}</span>
+              <strong>{category.name}</strong>
+              <p>{category.description}</p>
+            </Link>
+          ))}
+        </aside>
+      </div>
+    </section>
+  );
+}

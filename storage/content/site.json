@@ -1,0 +1,98 @@
+{
+  "hero": {
+    "eyebrow": "Schipor Adrian",
+    "headlineLines": ["Frames that breathe", "Stories that linger", "Visuals with soul"],
+    "tagline": "Photographer / Visual Storyteller",
+    "description": "Professional photography for events, places, nature, and people. Crafted with cinematic restraint, emotional timing, and premium attention to atmosphere.",
+    "primaryCta": {
+      "label": "View Portfolio",
+      "href": "/portfolio"
+    },
+    "secondaryCta": {
+      "label": "Book a Session",
+      "href": "/contact"
+    },
+    "heroMedia": {
+      "id": "hero-bloom",
+      "type": "video",
+      "src": "/media/seed/videos/flower-trimmed.mp4",
+      "poster": "/media/seed/images/window.png",
+      "title": "Golden Bloom",
+      "alt": "A figure surrounded by warm flowers"
+    },
+    "stats": [
+      {
+        "label": "Featured Stories",
+        "value": "08"
+      },
+      {
+        "label": "Primary Focus",
+        "value": "Events + People"
+      },
+      {
+        "label": "Visual Mood",
+        "value": "Cinematic"
+      }
+    ],
+    "featuredCategorySlugs": ["events", "places", "nature", "people"]
+  },
+  "featuredCollection": {
+    "title": "Selected Work",
+    "description": "A rotating edit of stories with strong mood, texture, and narrative clarity.",
+    "itemIds": [
+      "work-event-nocturne",
+      "work-place-window",
+      "work-nature-bloom",
+      "work-people-softlight"
+    ]
+  },
+  "about": {
+    "title": "A practice built around atmosphere",
+    "subtitle": "Photographer based in Melbourne, Australia, working across intimate events, thoughtful portraiture, places with personality, and nature-led visual essays.",
+    "body": "I approach photography as visual storytelling: not only documenting what is visible, but translating the feeling of a place, a moment, or a person into something lasting. My work leans toward elegant motion, patient framing, and imagery that feels both polished and human.",
+    "philosophy": "The strongest image is rarely the loudest one. It is the frame that invites you to stay a little longer.",
+    "portraitSrc": "/media/seed/images/item-5.jpg",
+    "portraitAlt": "Portrait sample representing Schipor Adrian's style"
+  },
+  "services": [
+    {
+      "id": "service-events",
+      "title": "Event Coverage",
+      "description": "Refined event storytelling for launches, private celebrations, brand gatherings, and performances.",
+      "deliverables": ["Candid moments", "Detail photography", "Hero selects", "Short-form recap video"]
+    },
+    {
+      "id": "service-people",
+      "title": "Portrait Sessions",
+      "description": "Editorial and personal portrait work with a calm pace, clear direction, and natural expression.",
+      "deliverables": ["Creative direction", "Location scouting", "Retouched gallery", "Vertical socials crops"]
+    },
+    {
+      "id": "service-places",
+      "title": "Places & Nature",
+      "description": "Atmospheric documentation of destinations, architecture, interiors, and outdoor stories.",
+      "deliverables": ["Location imagery", "Mood sequences", "Print-ready files", "Licensing guidance"]
+    }
+  ],
+  "contact": {
+    "title": "Let's shape the next story",
+    "description": "Available for commissions, brand collaborations, portrait sessions, destination work, and carefully selected personal projects.",
+    "email": "schipor.adiy@gmail.com",
+    "phone": "+44 7950 742079",
+    "linkedin": "https://linkedin.com/in/adrian-schipor",
+    "instagram": "https://instagram.com/adrian_schipor",
+    "instagramHandle": "adrian_schipor",
+    "location": "Melbourne, Australia / Available internationally",
+    "inquiryCtaLabel": "Start an inquiry"
+  },
+  "homepageSettings": {
+    "featuredItemIds": [
+      "work-event-nocturne",
+      "work-place-window",
+      "work-nature-bloom",
+      "work-people-softlight"
+    ],
+    "featuredCategorySlugs": ["events", "places", "nature", "people"],
+    "showLightboxHint": true
+  }
+}

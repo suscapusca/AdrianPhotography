@@ -1,0 +1,38 @@
+[
+  {
+    "id": "cat-events",
+    "name": "Events",
+    "slug": "events",
+    "description": "Atmospheric coverage for launches, performances, private gatherings, and celebrations.",
+    "visible": true,
+    "order": 1,
+    "accent": "Candlelight"
+  },
+  {
+    "id": "cat-places",
+    "name": "Places",
+    "slug": "places",
+    "description": "Architectural frames, travel atmosphere, and spaces with a strong sense of mood.",
+    "visible": true,
+    "order": 2,
+    "accent": "Stone"
+  },
+  {
+    "id": "cat-nature",
+    "name": "Nature",
+    "slug": "nature",
+    "description": "Organic motion, changing light, and patient observation of landscape and season.",
+    "visible": true,
+    "order": 3,
+    "accent": "Moss"
+  },
+  {
+    "id": "cat-people",
+    "name": "People",
+    "slug": "people",
+    "description": "Portraits with softness, honesty, and editorial attention to detail.",
+    "visible": true,
+    "order": 4,
+    "accent": "Porcelain"
+  }
+]

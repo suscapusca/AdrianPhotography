@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-server
+.git
+.gitignore
+.env
+.env.local
+.DS_Store
+tmp-*
+tmp*
+qa-site.mjs
+wordpress-theme
