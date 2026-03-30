@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -16,6 +16,7 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
   const rootRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const prefersReducedMotion = usePrefersReducedMotion();
+  const [isVideoReady, setIsVideoReady] = useState(hero.heroMedia.type !== 'video');
 
   useLayoutEffect(() => {
     const node = rootRef.current;
@@ -32,6 +33,7 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
     }
 
     let metadataHandler: (() => void) | null = null;
+    let dataHandler: (() => void) | null = null;
     let scrubTween: gsap.core.Tween | null = null;
 
     const context = gsap.context(() => {
@@ -112,8 +114,10 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
           }
 
           scrubTween?.kill();
+          video.load();
           video.pause();
           video.currentTime = initialFrame;
+          setIsVideoReady(true);
 
           scrubTween = gsap.to(video, {
             currentTime: Math.max(initialFrame, video.duration - endFrameBuffer),
@@ -130,11 +134,19 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
           ScrollTrigger.refresh();
         };
 
-        if (video.readyState >= 1) {
+        setIsVideoReady(video.readyState >= 2);
+
+        if (video.readyState >= 2) {
           setupScrollScrub();
         } else {
-          metadataHandler = () => setupScrollScrub();
-          video.addEventListener('loadedmetadata', metadataHandler, { once: true });
+          metadataHandler = () => {
+            if (video.readyState >= 2) {
+              setupScrollScrub();
+            }
+          };
+          dataHandler = () => setupScrollScrub();
+          video.addEventListener('loadedmetadata', metadataHandler);
+          video.addEventListener('loadeddata', dataHandler, { once: true });
         }
       }
     }, node);
@@ -143,6 +155,9 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
       scrubTween?.kill();
       if (video && metadataHandler) {
         video.removeEventListener('loadedmetadata', metadataHandler);
+      }
+      if (video && dataHandler) {
+        video.removeEventListener('loadeddata', dataHandler);
       }
       context.revert();
     };
@@ -154,15 +169,23 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
         <div className="hero__media-shell">
           <div className="hero__media-inner">
             {hero.heroMedia.type === 'video' ? (
-              <video
-                ref={videoRef}
-                className="hero__media"
-                src={hero.heroMedia.src}
-                poster={hero.heroMedia.poster}
-                muted
-                playsInline
-                preload="auto"
-              />
+              <>
+                <video
+                  ref={videoRef}
+                  className="hero__media"
+                  src={hero.heroMedia.src}
+                  poster={hero.heroMedia.poster}
+                  muted
+                  playsInline
+                  preload="auto"
+                />
+                <img
+                  className={`hero__poster ${isVideoReady ? 'hero__poster--hidden' : ''}`}
+                  src={hero.heroMedia.poster}
+                  alt=""
+                  aria-hidden="true"
+                />
+              </>
             ) : (
               <img className="hero__media" src={hero.heroMedia.src} alt={hero.heroMedia.alt} />
             )}

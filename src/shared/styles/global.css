@@ -418,6 +418,23 @@ main {
   will-change: transform;
 }
 
+.hero__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  z-index: 0;
+  opacity: 1;
+  transition: opacity 260ms ease;
+  pointer-events: none;
+}
+
+.hero__poster--hidden {
+  opacity: 0;
+}
+
 .hero__overlay {
   position: absolute;
   inset: 0;
