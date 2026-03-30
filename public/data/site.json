@@ -15,7 +15,8 @@
     "heroMedia": {
       "id": "hero-bloom",
       "type": "video",
-      "src": "/media/seed/videos/flower-hero.mp4",
+      "src": "/media/seed/videos/flower-hero-hq.mp4",
+      "srcWebm": "/media/seed/videos/flower-hero-hq.webm",
       "poster": "/media/seed/images/flower-hero-poster.jpg",
       "title": "Golden Bloom",
       "alt": "A figure surrounded by warm flowers"

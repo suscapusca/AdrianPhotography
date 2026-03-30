@@ -11,6 +11,7 @@ export const HeroMediaSchema = z.object({
   id: z.string().min(1),
   type: MediaTypeSchema,
   src: z.string().min(1),
+  srcWebm: z.string().optional().default(''),
   poster: z.string().optional().default(''),
   title: z.string().min(1),
   alt: z.string().min(1),

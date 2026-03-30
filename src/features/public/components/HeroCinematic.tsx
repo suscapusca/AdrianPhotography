@@ -12,24 +12,74 @@ type HeroCinematicProps = {
   categories: Category[];
 };
 
-const mobileSequenceFrames = Array.from({ length: 18 }, (_, index) => {
+const mobileSequenceFrames = Array.from({ length: 60 }, (_, index) => {
   const frameNumber = String(index + 1).padStart(4, '0');
-  return `/media/seed/sequences/flower-hero/frame-${frameNumber}.jpg`;
+  return `/media/seed/sequences/flower-hero-60-webp/frame-${frameNumber}.webp`;
 });
 
 export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
   const rootRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const sequenceLoadedFramesRef = useRef<Set<number>>(new Set());
+  const sequenceLoadingFramesRef = useRef<Set<number>>(new Set());
+  const requestedSequenceFrameRef = useRef(0);
   const prefersReducedMotion = usePrefersReducedMotion();
   const [isVideoReady, setIsVideoReady] = useState(hero.heroMedia.type !== 'video');
   const [usesSequenceFallback, setUsesSequenceFallback] = useState(false);
   const [sequenceFrameIndex, setSequenceFrameIndex] = useState(0);
 
+  const markSequenceFrameLoaded = (index: number) => {
+    sequenceLoadingFramesRef.current.delete(index);
+    sequenceLoadedFramesRef.current.add(index);
+
+    if (requestedSequenceFrameRef.current === index) {
+      setSequenceFrameIndex((current) => (current === index ? current : index));
+    }
+  };
+
+  const queueSequenceFrame = (index: number) => {
+    if (
+      index < 0 ||
+      index >= mobileSequenceFrames.length ||
+      sequenceLoadedFramesRef.current.has(index) ||
+      sequenceLoadingFramesRef.current.has(index)
+    ) {
+      return;
+    }
+
+    const image = new Image();
+    image.decoding = 'async';
+    sequenceLoadingFramesRef.current.add(index);
+    image.onload = () => markSequenceFrameLoaded(index);
+    image.onerror = () => {
+      sequenceLoadingFramesRef.current.delete(index);
+    };
+    image.src = mobileSequenceFrames[index];
+  };
+
+  const syncSequenceFrame = (index: number) => {
+    requestedSequenceFrameRef.current = index;
+
+    if (sequenceLoadedFramesRef.current.has(index)) {
+      setSequenceFrameIndex((current) => (current === index ? current : index));
+      return;
+    }
+
+    queueSequenceFrame(index);
+    queueSequenceFrame(index + 1);
+    queueSequenceFrame(index - 1);
+  };
+
   useEffect(() => {
     const coarsePointerQuery = window.matchMedia('(pointer: coarse)');
+    const isIOSDevice = () =>
+      /iP(hone|ad|od)/i.test(window.navigator.userAgent) ||
+      (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
 
     const updateMode = () => {
-      setUsesSequenceFallback(coarsePointerQuery.matches || window.innerWidth <= 900);
+      setUsesSequenceFallback(
+        isIOSDevice() && (coarsePointerQuery.matches || window.innerWidth <= 900),
+      );
     };
 
     updateMode();
@@ -41,6 +91,48 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
       window.removeEventListener('resize', updateMode);
     };
   }, []);
+
+  useEffect(() => {
+    if (!usesSequenceFallback || hero.heroMedia.type !== 'video') {
+      return;
+    }
+
+    sequenceLoadedFramesRef.current.clear();
+    sequenceLoadingFramesRef.current.clear();
+    requestedSequenceFrameRef.current = 0;
+    setSequenceFrameIndex(0);
+    queueSequenceFrame(0);
+    queueSequenceFrame(1);
+    queueSequenceFrame(2);
+
+    let cancelled = false;
+    let nextFrameIndex = 3;
+    let timeoutId = 0;
+
+    const preloadBatch = () => {
+      if (cancelled) {
+        return;
+      }
+
+      for (let count = 0; count < 4 && nextFrameIndex < mobileSequenceFrames.length; count += 1) {
+        queueSequenceFrame(nextFrameIndex);
+        nextFrameIndex += 1;
+      }
+
+      if (nextFrameIndex < mobileSequenceFrames.length) {
+        timeoutId = window.setTimeout(preloadBatch, 90);
+      }
+    };
+
+    timeoutId = window.setTimeout(preloadBatch, 120);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+      sequenceLoadedFramesRef.current.clear();
+      sequenceLoadingFramesRef.current.clear();
+    };
+  }, [hero.heroMedia.type, usesSequenceFallback]);
 
   useLayoutEffect(() => {
     const node = rootRef.current;
@@ -142,7 +234,7 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
               Math.max(0, Math.round(self.progress * (mobileSequenceFrames.length - 1))),
             );
 
-            setSequenceFrameIndex((current) => (current === nextFrame ? current : nextFrame));
+            syncSequenceFrame(nextFrame);
           },
         });
       } else if (video && hero.heroMedia.type === 'video') {
@@ -211,7 +303,13 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
       }
       context.revert();
     };
-  }, [hero.heroMedia.src, hero.heroMedia.type, prefersReducedMotion, usesSequenceFallback]);
+  }, [
+    hero.heroMedia.src,
+    hero.heroMedia.srcWebm,
+    hero.heroMedia.type,
+    prefersReducedMotion,
+    usesSequenceFallback,
+  ]);
 
   return (
     <section ref={rootRef} className="hero">
@@ -225,13 +323,13 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
                 alt={hero.heroMedia.alt}
                 loading="eager"
                 fetchPriority="high"
+                onLoad={() => markSequenceFrameLoaded(sequenceFrameIndex)}
               />
             ) : hero.heroMedia.type === 'video' ? (
               <>
                 <video
                   ref={videoRef}
                   className="hero__media"
-                  src={hero.heroMedia.src}
                   poster={hero.heroMedia.poster}
                   autoPlay
                   muted
@@ -239,7 +337,12 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
                   preload="auto"
                   disablePictureInPicture
                   disableRemotePlayback
-                />
+                >
+                  {hero.heroMedia.srcWebm ? (
+                    <source src={hero.heroMedia.srcWebm} type="video/webm" />
+                  ) : null}
+                  <source src={hero.heroMedia.src} type="video/mp4" />
+                </video>
                 <img
                   className={`hero__poster ${isVideoReady ? 'hero__poster--hidden' : ''}`}
                   src={hero.heroMedia.poster}
