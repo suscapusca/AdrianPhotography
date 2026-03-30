@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -12,11 +12,35 @@ type HeroCinematicProps = {
   categories: Category[];
 };
 
+const mobileSequenceFrames = Array.from({ length: 18 }, (_, index) => {
+  const frameNumber = String(index + 1).padStart(4, '0');
+  return `/media/seed/sequences/flower-hero/frame-${frameNumber}.jpg`;
+});
+
 export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
   const rootRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const prefersReducedMotion = usePrefersReducedMotion();
   const [isVideoReady, setIsVideoReady] = useState(hero.heroMedia.type !== 'video');
+  const [usesSequenceFallback, setUsesSequenceFallback] = useState(false);
+  const [sequenceFrameIndex, setSequenceFrameIndex] = useState(0);
+
+  useEffect(() => {
+    const coarsePointerQuery = window.matchMedia('(pointer: coarse)');
+
+    const updateMode = () => {
+      setUsesSequenceFallback(coarsePointerQuery.matches || window.innerWidth <= 900);
+    };
+
+    updateMode();
+    coarsePointerQuery.addEventListener('change', updateMode);
+    window.addEventListener('resize', updateMode);
+
+    return () => {
+      coarsePointerQuery.removeEventListener('change', updateMode);
+      window.removeEventListener('resize', updateMode);
+    };
+  }, []);
 
   useLayoutEffect(() => {
     const node = rootRef.current;
@@ -35,6 +59,7 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
     let metadataHandler: (() => void) | null = null;
     let dataHandler: (() => void) | null = null;
     let scrubTween: gsap.core.Tween | null = null;
+    let sequenceTrigger: ScrollTrigger | null = null;
 
     const context = gsap.context(() => {
       const stage = node.querySelector<HTMLElement>('.hero__stage');
@@ -104,20 +129,44 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
         .to('.hero__content', { y: -24, opacity: 0.94, ease: 'none' }, 0.05)
         .to('.hero__rail', { y: -16, opacity: 0.96, ease: 'none' }, 0.04);
 
-      if (video && hero.heroMedia.type === 'video') {
+      if (hero.heroMedia.type === 'video' && usesSequenceFallback) {
+        sequenceTrigger = ScrollTrigger.create({
+          trigger: node,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 0.45,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            const nextFrame = Math.min(
+              mobileSequenceFrames.length - 1,
+              Math.max(0, Math.round(self.progress * (mobileSequenceFrames.length - 1))),
+            );
+
+            setSequenceFrameIndex((current) => (current === nextFrame ? current : nextFrame));
+          },
+        });
+      } else if (video && hero.heroMedia.type === 'video') {
         const initialFrame = 0.05;
         const endFrameBuffer = 0.18;
 
-        const setupScrollScrub = () => {
+        const setupScrollScrub = async () => {
           if (!video.duration || !Number.isFinite(video.duration)) {
             return;
           }
 
           scrubTween?.kill();
           video.load();
-          video.pause();
-          video.currentTime = initialFrame;
-          setIsVideoReady(true);
+
+          try {
+            await video.play();
+            await new Promise((resolve) => window.setTimeout(resolve, 80));
+          } catch (error) {
+            console.warn('Hero video priming failed.', error);
+          } finally {
+            video.pause();
+            video.currentTime = initialFrame;
+            setIsVideoReady(true);
+          }
 
           scrubTween = gsap.to(video, {
             currentTime: Math.max(initialFrame, video.duration - endFrameBuffer),
@@ -137,14 +186,14 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
         setIsVideoReady(video.readyState >= 2);
 
         if (video.readyState >= 2) {
-          setupScrollScrub();
+          void setupScrollScrub();
         } else {
           metadataHandler = () => {
             if (video.readyState >= 2) {
-              setupScrollScrub();
+              void setupScrollScrub();
             }
           };
-          dataHandler = () => setupScrollScrub();
+          dataHandler = () => void setupScrollScrub();
           video.addEventListener('loadedmetadata', metadataHandler);
           video.addEventListener('loadeddata', dataHandler, { once: true });
         }
@@ -153,6 +202,7 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
 
     return () => {
       scrubTween?.kill();
+      sequenceTrigger?.kill();
       if (video && metadataHandler) {
         video.removeEventListener('loadedmetadata', metadataHandler);
       }
@@ -161,23 +211,34 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
       }
       context.revert();
     };
-  }, [hero.heroMedia.src, hero.heroMedia.type, prefersReducedMotion]);
+  }, [hero.heroMedia.src, hero.heroMedia.type, prefersReducedMotion, usesSequenceFallback]);
 
   return (
     <section ref={rootRef} className="hero">
       <div className="hero__stage">
         <div className="hero__media-shell">
           <div className="hero__media-inner">
-            {hero.heroMedia.type === 'video' ? (
+            {hero.heroMedia.type === 'video' && usesSequenceFallback ? (
+              <img
+                className="hero__media"
+                src={mobileSequenceFrames[sequenceFrameIndex]}
+                alt={hero.heroMedia.alt}
+                loading="eager"
+                fetchPriority="high"
+              />
+            ) : hero.heroMedia.type === 'video' ? (
               <>
                 <video
                   ref={videoRef}
                   className="hero__media"
                   src={hero.heroMedia.src}
                   poster={hero.heroMedia.poster}
+                  autoPlay
                   muted
                   playsInline
                   preload="auto"
+                  disablePictureInPicture
+                  disableRemotePlayback
                 />
                 <img
                   className={`hero__poster ${isVideoReady ? 'hero__poster--hidden' : ''}`}
