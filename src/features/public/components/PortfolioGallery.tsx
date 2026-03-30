@@ -7,6 +7,8 @@ type PortfolioGalleryProps = {
   items: PortfolioItem[];
   categories: Category[];
   activeCategory: string;
+  countsByCategory?: Record<string, number>;
+  totalCount?: number;
   onCategoryChange: (category: string) => void;
   onOpen: (index: number) => void;
 };
@@ -15,6 +17,8 @@ export function PortfolioGallery({
   items,
   categories,
   activeCategory,
+  countsByCategory = {},
+  totalCount = items.length,
   onCategoryChange,
   onOpen,
 }: PortfolioGalleryProps) {
@@ -47,7 +51,8 @@ export function PortfolioGallery({
           className={activeCategory === 'all' ? 'is-active' : ''}
           onClick={() => startTransition(() => onCategoryChange('all'))}
         >
-          All Work
+          <span>All Work</span>
+          <strong>{totalCount}</strong>
         </button>
         {categories.map((category) => (
           <button
@@ -56,7 +61,8 @@ export function PortfolioGallery({
             className={activeCategory === category.slug ? 'is-active' : ''}
             onClick={() => startTransition(() => onCategoryChange(category.slug))}
           >
-            {category.name}
+            <span>{category.name}</span>
+            <strong>{countsByCategory[category.slug] ?? 0}</strong>
           </button>
         ))}
       </div>
@@ -65,22 +71,28 @@ export function PortfolioGallery({
         {items.map((item, index) => (
           <article
             key={item.id}
-            className={`portfolio-card portfolio-card--${item.aspectRatio}`}
+            className={`portfolio-card portfolio-card--${item.aspectRatio} ${item.featured ? 'portfolio-card--featured' : ''}`}
           >
             <button type="button" className="portfolio-card__button" onClick={() => onOpen(index)}>
               <div className="portfolio-card__media">
                 {item.mediaType === 'video' ? (
-                  <video src={item.src} poster={item.posterSrc} muted loop playsInline />
+                  <video src={item.src} poster={item.posterSrc} muted loop playsInline preload="metadata" />
                 ) : (
                   <img src={item.thumbnailSrc} alt={item.alt} loading="lazy" />
                 )}
+                <div className="portfolio-card__shade" />
               </div>
               <div className="portfolio-card__body">
                 <div>
                   <p className="eyebrow">{item.categorySlug}</p>
                   <h3>{item.title}</h3>
+                  <p>{item.description}</p>
                 </div>
-                <span>{item.location}</span>
+                <div className="portfolio-card__meta">
+                  <span>{item.location}</span>
+                  <span>{item.year}</span>
+                  <span>{item.mediaType === 'video' ? 'Motion' : 'Photo'}</span>
+                </div>
               </div>
             </button>
           </article>

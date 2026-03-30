@@ -7,6 +7,12 @@ type ContactBlockProps = {
 
 export function ContactBlock({ contact }: ContactBlockProps) {
   const [status, setStatus] = useState<string | null>(null);
+  const directLinks = [
+    { label: 'Email', value: contact.email, href: `mailto:${contact.email}` },
+    { label: 'Phone', value: contact.phone, href: `tel:${contact.phone.replace(/\s+/g, '')}` },
+    { label: 'LinkedIn', value: 'adrian-schipor', href: contact.linkedin },
+    { label: 'Instagram', value: `@${contact.instagramHandle}`, href: contact.instagram },
+  ];
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -30,35 +36,43 @@ export function ContactBlock({ contact }: ContactBlockProps) {
           <h2>{contact.title}</h2>
           <p>{contact.description}</p>
         </div>
+        <div className="contact-block__channels" data-reveal>
+          {directLinks.map((link) => (
+            <a key={link.label} className="contact-block__channel" href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel={link.href.startsWith('http') ? 'noreferrer' : undefined}>
+              <span>{link.label}</span>
+              <strong>{link.value}</strong>
+            </a>
+          ))}
+        </div>
         <div className="contact-block__details" data-reveal>
-          <a href={`mailto:${contact.email}`}>{contact.email}</a>
-          <a href={`tel:${contact.phone.replace(/\s+/g, '')}`}>{contact.phone}</a>
-          <a href={contact.linkedin} target="_blank" rel="noreferrer">
-            LinkedIn
-          </a>
-          <a href={contact.instagram} target="_blank" rel="noreferrer">
-            Instagram / @{contact.instagramHandle}
-          </a>
           <span>{contact.location}</span>
+          <span>Typical response window: within 48 hours.</span>
+          <span>Open to private commissions, editorial work, and select brand collaborations.</span>
         </div>
       </div>
 
       <form className="contact-form" onSubmit={handleSubmit} data-reveal>
-        <label>
-          Name
-          <input name="name" type="text" placeholder="Your name" required />
-        </label>
-        <label>
-          Email
-          <input name="email" type="email" placeholder="you@example.com" required />
-        </label>
-        <label>
-          Project Type
-          <input name="project" type="text" placeholder="Event, portrait, destination..." required />
-        </label>
+        <div className="contact-form__grid">
+          <label>
+            Name
+            <input name="name" type="text" placeholder="Your name" required />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            Project Type
+            <input name="project" type="text" placeholder="Event, portrait, destination..." required />
+          </label>
+          <label>
+            Timeline
+            <input name="timeline" type="text" placeholder="Month, date, or desired timeframe" />
+          </label>
+        </div>
         <label>
           Message
-          <textarea name="message" rows={6} placeholder="Tell me about the story you want to create." required />
+          <textarea name="message" rows={6} placeholder="Tell me about the story, mood, deliverables, and location." required />
         </label>
         <button type="submit" className="button button--primary">
           {contact.inquiryCtaLabel}

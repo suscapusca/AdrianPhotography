@@ -29,6 +29,10 @@ export function PortfolioPage() {
   }
 
   const activeCategory = searchParams.get('category') ?? 'all';
+  const categoryCounts = portfolio.reduce<Record<string, number>>((accumulator, item) => {
+    accumulator[item.categorySlug] = (accumulator[item.categorySlug] ?? 0) + 1;
+    return accumulator;
+  }, {});
   const visibleItems =
     activeCategory === 'all'
       ? portfolio
@@ -41,31 +45,50 @@ export function PortfolioPage() {
         description="A curated mix of photography and motion work across events, places, nature, and people."
       />
 
-      <section className="page-hero page-hero--compact">
-        <div className="page-hero__content">
-          <p className="eyebrow">Portfolio</p>
-          <h1>Stories arranged with calm precision and cinematic depth.</h1>
-          <p>
-            Browse by category, open individual works fullscreen, and move through the
-            collection with keyboard navigation.
-          </p>
-          {site.homepageSettings.showLightboxHint ? (
-            <span className="page-note">Tip: use arrow keys inside the fullscreen viewer.</span>
-          ) : null}
+      <section className="page-hero page-hero--compact page-hero--portfolio">
+        <div className="page-hero__layout">
+          <div className="page-hero__content">
+            <p className="eyebrow">Portfolio</p>
+            <h1>Stories arranged with more clarity, breathing room, and visual confidence.</h1>
+            <p>
+              Every category now reads more deliberately, with stronger image framing and a browse
+              flow that keeps the work central while still giving visitors context.
+            </p>
+            {site.homepageSettings.showLightboxHint ? (
+              <span className="page-note">Tip: use arrow keys inside the fullscreen viewer.</span>
+            ) : null}
+          </div>
+
+          <aside className="page-hero__aside">
+            <div>
+              <span>Visible works</span>
+              <strong>{visibleItems.length}</strong>
+            </div>
+            <div>
+              <span>Categories</span>
+              <strong>{categories.length}</strong>
+            </div>
+            <div>
+              <span>Availability</span>
+              <strong>Commissions open</strong>
+            </div>
+          </aside>
         </div>
       </section>
 
       <section className="section" ref={revealRef}>
         <SectionIntro
           eyebrow="Gallery"
-          title="Responsive, refined, and built around the work itself."
-          description="Photos and motion pieces share the same visual system so the portfolio feels unified across categories."
+          title="The interface is quieter so the photography can carry more weight."
+          description="Filters are clearer, cards are more intentional, and the fullscreen view remains the immersive deep-dive for detail and mood."
         />
 
         <PortfolioGallery
           items={visibleItems}
           categories={categories}
           activeCategory={activeCategory}
+          countsByCategory={categoryCounts}
+          totalCount={portfolio.length}
           onCategoryChange={(category) =>
             setSearchParams(category === 'all' ? {} : { category })
           }

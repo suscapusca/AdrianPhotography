@@ -173,7 +173,7 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
       intro
         .from('.hero__eyebrow', { y: 24, opacity: 0, duration: 0.9 })
         .from('.hero__headline-line span', { yPercent: 110, skewY: 6, duration: 1.25, stagger: 0.12 }, 0.05)
-        .from('.hero__tagline, .hero__description', { y: 24, opacity: 0, duration: 0.8, stagger: 0.12 }, 0.4)
+        .from('.hero__tagline, .hero__description, .hero__confidence, .hero__microcopy', { y: 24, opacity: 0, duration: 0.8, stagger: 0.12 }, 0.4)
         .from('.hero__actions > *', { y: 18, opacity: 0, duration: 0.6, stagger: 0.1 }, 0.55)
         .from('.hero__stat', { y: 22, opacity: 0, duration: 0.75, stagger: 0.08 }, 0.6)
         .from('.hero__rail-card', { x: 36, opacity: 0, duration: 0.8, stagger: 0.08 }, 0.5);
@@ -368,6 +368,11 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
           </div>
           <p className="hero__tagline">{hero.tagline}</p>
           <p className="hero__description">{hero.description}</p>
+          <div className="hero__confidence">
+            <span>Events, portraits, and destination stories</span>
+            <span>Calm direction with editorial discipline</span>
+            <span>Available for commissioned work</span>
+          </div>
 
           <div className="hero__actions">
             <Link to={hero.primaryCta.href} className="button button--primary">
@@ -382,10 +387,12 @@ export function HeroCinematic({ hero, categories }: HeroCinematicProps) {
             {hero.stats.map((stat) => (
               <article key={stat.label} className="hero__stat">
                 <p>{stat.label}</p>
-                <strong>{stat.value}</strong>
-              </article>
-            ))}
+              <strong>{stat.value}</strong>
+            </article>
+          ))}
           </div>
+
+          <p className="hero__microcopy">For brands, private clients, and visual stories that need atmosphere and clarity.</p>
         </div>
 
         <aside className="hero__rail" aria-label="Featured categories">

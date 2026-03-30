@@ -24,6 +24,11 @@ const processSteps = [
 export function ServicesPage() {
   const { site, loading, error } = usePublicSiteData();
   const revealRef = useSectionReveal<HTMLDivElement>([site]);
+  const servicePromises = [
+    'Shot lists and visual tone aligned before the day',
+    'Direction that keeps shoots calm and efficient',
+    'Final edits prepared for premium presentation and client use',
+  ];
 
   if (loading && !site) {
     return <LoadingState />;
@@ -43,7 +48,7 @@ export function ServicesPage() {
       <section className="page-hero page-hero--compact">
         <div className="page-hero__content">
           <p className="eyebrow">Services</p>
-          <h1>Commissioned work with a calm process and a premium finish.</h1>
+          <h1>Commissioned work with a calmer process, stronger positioning, and a more premium finish.</h1>
           <p>
             Whether the assignment is intimate or expansive, the approach stays focused on atmosphere,
             pacing, and emotionally resonant frames.
@@ -55,17 +60,28 @@ export function ServicesPage() {
         <section className="section">
           <SectionIntro
             eyebrow="Offerings"
-            title="Core work types tailored to real briefs and real stories."
-            description="The structure is professional and production-minded, while the imagery stays expressive."
+            title="Offerings designed to feel commercially credible as well as visually rich."
+            description="The language, layout, and delivery cues here are more client-aware, which helps the site convert without becoming salesy."
           />
           <ServicesList services={site.services} />
+        </section>
+
+        <section className="section section--narrow">
+          <div className="editorial-values">
+            {servicePromises.map((promise) => (
+              <article key={promise} className="editorial-card" data-reveal>
+                <p className="eyebrow">What clients get</p>
+                <h3>{promise}</h3>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="section section--narrow">
           <SectionIntro
             eyebrow="Process"
             title="Simple on the surface, carefully directed underneath."
-            description="A premium end result depends on clarity before the shoot, confidence during it, and restraint in the final edit."
+            description="This section now supports the brand more clearly: it reassures visitors that the work is not only beautiful, but professionally run."
           />
           <div className="process-grid">
             {processSteps.map((step) => (

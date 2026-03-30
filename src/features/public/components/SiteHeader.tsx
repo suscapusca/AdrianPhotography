@@ -28,41 +28,52 @@ export function SiteHeader() {
   return (
     <header className={`site-header ${isScrolled ? 'site-header--scrolled' : ''}`}>
       <div className="site-header__inner">
-        <Link to="/" className="brand-mark" aria-label="Schipor Adrian home">
-          Schipor Adrian
-        </Link>
+        <div className="site-header__panel">
+          <Link to="/" className="brand-block" aria-label="Schipor Adrian home">
+            <span className="brand-mark">Schipor Adrian</span>
+            <span className="brand-submark">Photographer / Visual Storyteller</span>
+          </Link>
 
-        <nav className="site-nav" aria-label="Primary navigation">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => (isActive ? 'site-nav__link is-active' : 'site-nav__link')}
+          <nav className="site-nav" aria-label="Primary navigation">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => (isActive ? 'site-nav__link is-active' : 'site-nav__link')}
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="site-header__actions">
+            <span className="site-header__status">
+              <span aria-hidden="true" />
+              Available for commissions
+            </span>
+
+            <Link to="/contact" className="button button--ghost site-header__cta">
+              Start a Project
+            </Link>
+
+            <button
+              type="button"
+              className={`menu-toggle ${isOpen ? 'is-open' : ''}`}
+              onClick={() => setIsOpen((current) => !current)}
+              aria-expanded={isOpen}
+              aria-controls="mobile-menu"
+              aria-label="Toggle menu"
             >
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <Link to="/contact" className="button button--ghost site-header__cta">
-          Book a Session
-        </Link>
-
-        <button
-          type="button"
-          className={`menu-toggle ${isOpen ? 'is-open' : ''}`}
-          onClick={() => setIsOpen((current) => !current)}
-          aria-expanded={isOpen}
-          aria-controls="mobile-menu"
-          aria-label="Toggle menu"
-        >
-          <span />
-          <span />
-        </button>
+              <span />
+              <span />
+            </button>
+          </div>
+        </div>
       </div>
 
       <div id="mobile-menu" className={`mobile-menu ${isOpen ? 'is-open' : ''}`}>
         <div className="mobile-menu__panel">
+          <p className="mobile-menu__eyebrow">Available for commissions</p>
           {navItems.map((item) => (
             <NavLink
               key={item.to}
